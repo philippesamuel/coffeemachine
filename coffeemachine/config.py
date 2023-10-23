@@ -54,11 +54,13 @@ MENU: dict[Drink, DrinkSpecsDict] = {
         "cost": 300,
     }
 }
+
 RESOURCES = {
     Ingredient.WATER: 300,
     Ingredient.MILK: 200,
     Ingredient.COFFEE: 100,
     "money": 0
 }
+
 COFFE_MACHINE_OPTIONS = [d.value for d in Drink] + ['report', 'off']
 CoffeMachineFunction = Callable[[], None]
