@@ -1,60 +1,76 @@
-"""
+"""CLI Coffe Machine
+
 Money handled in this code is internally represented in cents of dollar.
 I use ints to handle mathematical operations on money and thus avoid inaccuracies due to floating point arithmetics.
 """
 
 from enum import Enum
-from functools import partial
+from functools import partial, lru_cache
 from typing import Callable, TypedDict
 
 import click
 
 from coffeemachine.lib.string_funcs import format_dollars
 
-MENU = {
-    "espresso": {
+
+class Drink(str, Enum):
+    """Drink options."""
+    ESPRESSO = 'espresso'
+    LATTE = 'latte'
+    CAPPUCCINO = 'cappuccino'
+
+    @classmethod
+    @lru_cache
+    def formatted_options(cls, *, sep: str = '/') -> str:
+        """Return formatted options."""
+        return sep.join(cls)
+
+
+class Ingredient(str, Enum):
+    """Ingredient options."""
+    WATER = 'water'
+    MILK = 'milk'
+    COFFEE = 'coffee'
+
+
+class DrinkSpecsDict(TypedDict):
+    """Specifications for a drink. i.e. Needed ingredients and end price."""
+    ingredients: dict[Ingredient, int]
+    cost: int
+
+
+MENU: dict[Drink, DrinkSpecsDict] = {
+    Drink.ESPRESSO: {
         "ingredients": {
-            "water": 50,
-            "coffee": 18,
+            Ingredient.WATER: 50,
+            Ingredient.COFFEE: 18,
         },
         "cost": 150,
     },
-    "latte": {
+    Drink.LATTE: {
         "ingredients": {
-            "water": 200,
-            "milk": 150,
-            "coffee": 24,
+            Ingredient.WATER: 200,
+            Ingredient.MILK: 150,
+            Ingredient.COFFEE: 24,
         },
         "cost": 250,
     },
-    "cappuccino": {
+    Drink.CAPPUCCINO: {
         "ingredients": {
-            "water": 250,
-            "milk": 100,
-            "coffee": 24,
+            Ingredient.WATER: 250,
+            Ingredient.MILK: 100,
+            Ingredient.COFFEE: 24,
         },
         "cost": 300,
     }
 }
 
 RESOURCES = {
-    "water": 300,
-    "milk": 200,
-    "coffee": 100,
+    Ingredient.WATER: 300,
+    Ingredient.MILK: 200,
+    Ingredient.COFFEE: 100,
     "money": 0
 }
-
-
-class Drink(str, Enum):
-    ESPRESSO = 'espresso'
-    LATTE = 'latte'
-    CAPPUCCINO = 'cappuccino'
-
-
-class IngredientsDict(TypedDict):
-    water: int
-    milk: int
-    coffee: int
 
 
 COFFE_MACHINE_OPTIONS = [d.value for d in Drink] + ['report', 'off']
@@ -63,18 +79,18 @@ CoffeMachineFunction = Callable[[], None]
 
 @click.command()
 def main() -> None:
-    while True:
-        order: str = click.prompt(
-            f"What would you like? ({'/'.join(Drink)})",
-            type=click.Choice(COFFE_MACHINE_OPTIONS, case_sensitive=False),
-            value_proc=str.lower,
-            show_choices=False
-        )
+    machine_is_on = True
+    while machine_is_on:
+        order: str = click.prompt(f"What would you like? ({Drink.formatted_options()})",
+                                  type=click.Choice(COFFE_MACHINE_OPTIONS, case_sensitive=False),
+                                  value_proc=str.lower,
+                                  show_choices=False
+                                  )
         coffe_machine_func = options_func_mapping(option=order)
         try:
             coffe_machine_func()
         except click.Abort:
-            break
+            machine_is_on = False
 
 
 def turn_off():
@@ -133,7 +149,7 @@ def sell_drink(drink: Drink) -> None:
     click.echo(f"Here is your {drink} ☕. Enjoy!")
 
 
-def get_insufficient_resources(ingredients: IngredientsDict) -> list[str]:
+def get_insufficient_resources(ingredients: DrinkSpecsDict) -> list[str]:
     return [ingredient for ingredient, amount_needed in ingredients.items() if amount_needed > RESOURCES[ingredient]]
 
 
