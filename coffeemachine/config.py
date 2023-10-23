@@ -1,8 +1,6 @@
 from enum import Enum
-from functools import lru_cache, partial
+from functools import lru_cache
 from typing import TypedDict, Callable
-
-from coffeemachine.main import turn_off, print_report, sell_drink
 
 
 class Drink(str, Enum):
@@ -64,10 +62,3 @@ RESOURCES = {
 }
 COFFE_MACHINE_OPTIONS = [d.value for d in Drink] + ['report', 'off']
 CoffeMachineFunction = Callable[[], None]
-OPTIONS_FUNC_DICT: dict[str, CoffeMachineFunction] = {
-    'off': turn_off,
-    'report': print_report,
-    Drink.ESPRESSO: partial(sell_drink, drink=Drink.ESPRESSO),
-    Drink.LATTE: partial(sell_drink, drink=Drink.LATTE),
-    Drink.CAPPUCCINO: partial(sell_drink, drink=Drink.CAPPUCCINO)
-}
