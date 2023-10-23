@@ -14,12 +14,8 @@ from coffeemachine.config import Drink
 from coffeemachine.config import DrinkSpecsDict
 from coffeemachine.config import MENU
 from coffeemachine.config import RESOURCES
+from coffeemachine.exceptions import NotEnoughMoneyError
 from coffeemachine.lib.string_funcs import format_dollars
-
-
-class NotEnoughMoneyError(Exception):
-    """Raised when inserted money is not enough to buy a drink."""
-    pass
 
 
 @click.command()
