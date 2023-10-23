@@ -4,77 +4,16 @@ Money handled in this code is internally represented in cents of dollar.
 I use ints to handle mathematical operations on money and thus avoid inaccuracies due to floating point arithmetics.
 """
 
-from enum import Enum
-from functools import partial, lru_cache
-from typing import Callable, TypedDict
-
 import click
 
+from coffeemachine.config import CoffeMachineFunction
+from coffeemachine.config import COFFE_MACHINE_OPTIONS
+from coffeemachine.config import Drink
+from coffeemachine.config import DrinkSpecsDict
+from coffeemachine.config import MENU
+from coffeemachine.config import RESOURCES
+from coffeemachine.config import OPTIONS_FUNC_DICT
 from coffeemachine.lib.string_funcs import format_dollars
-
-
-class Drink(str, Enum):
-    """Drink options."""
-    ESPRESSO = 'espresso'
-    LATTE = 'latte'
-    CAPPUCCINO = 'cappuccino'
-
-    @classmethod
-    @lru_cache
-    def formatted_options(cls, *, sep: str = '/') -> str:
-        """Return formatted options."""
-        return sep.join(cls)
-
-
-class Ingredient(str, Enum):
-    """Ingredient options."""
-    WATER = 'water'
-    MILK = 'milk'
-    COFFEE = 'coffee'
-
-
-class DrinkSpecsDict(TypedDict):
-    """Specifications for a drink. i.e. Needed ingredients and end price."""
-    ingredients: dict[Ingredient, int]
-    cost: int
-
-
-MENU: dict[Drink, DrinkSpecsDict] = {
-    Drink.ESPRESSO: {
-        "ingredients": {
-            Ingredient.WATER: 50,
-            Ingredient.COFFEE: 18,
-        },
-        "cost": 150,
-    },
-    Drink.LATTE: {
-        "ingredients": {
-            Ingredient.WATER: 200,
-            Ingredient.MILK: 150,
-            Ingredient.COFFEE: 24,
-        },
-        "cost": 250,
-    },
-    Drink.CAPPUCCINO: {
-        "ingredients": {
-            Ingredient.WATER: 250,
-            Ingredient.MILK: 100,
-            Ingredient.COFFEE: 24,
-        },
-        "cost": 300,
-    }
-}
-
-RESOURCES = {
-    Ingredient.WATER: 300,
-    Ingredient.MILK: 200,
-    Ingredient.COFFEE: 100,
-    "money": 0
-}
-
-
-COFFE_MACHINE_OPTIONS = [d.value for d in Drink] + ['report', 'off']
-CoffeMachineFunction = Callable[[], None]
 
 
 @click.command()
@@ -154,15 +93,6 @@ def get_insufficient_resources(ingredients: DrinkSpecsDict) -> list[str]:
 
 
 def invalid_option() -> None: click.echo("Option invalid")
-
-
-OPTIONS_FUNC_DICT: dict[str, CoffeMachineFunction] = {
-    'off': turn_off,
-    'report': print_report,
-    Drink.ESPRESSO: partial(sell_drink, drink=Drink.ESPRESSO),
-    Drink.LATTE: partial(sell_drink, drink=Drink.LATTE),
-    Drink.CAPPUCCINO: partial(sell_drink, drink=Drink.CAPPUCCINO)
-}
 
 
 def options_func_mapping(option: str) -> CoffeMachineFunction:
